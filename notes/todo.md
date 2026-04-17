@@ -1,0 +1,4 @@
+- parent sheath to armature
+- prepare shield
+- walk animation
+- controls

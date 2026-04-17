@@ -4,7 +4,7 @@ import { OrbitControls, Html, useAnimations, Environment, useGLTF } from '@react
 import * as THREE from 'three';
 
 function LinkModel() {
-  const characterImport = useGLTF('/3d_assets/link.glb');
+  const characterImport = useGLTF('/3d_assets/link_sword_and_shield.glb');
   const characterModel = characterImport.scene;
   const anim = useGLTF('/3d_assets/animations/sword_and_shield_idle.glb');
   const { actions, mixer } = useAnimations(anim.animations, characterModel);

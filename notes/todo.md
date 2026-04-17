@@ -1,4 +1,5 @@
-- parent sheath to armature
-- prepare shield
-- walk animation
+- code refactor
 - controls
+- forward movement
+- directional animations
+- scenery

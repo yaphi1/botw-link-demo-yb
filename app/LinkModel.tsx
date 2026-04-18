@@ -20,6 +20,7 @@ export function LinkModel() {
   const groupRef = useRef<THREE.Group>(null!);
   const currentSpeed = useRef(0);
   const forwardHeldTime = useRef(0);
+  const facingDirection = useRef(new THREE.Vector3(0, 0, -1));
   const characterImport = useGLTF('/3d_assets/link_sword_and_shield.glb');
   const characterModel = characterImport.scene;
   const idleAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle.glb');
@@ -74,7 +75,7 @@ export function LinkModel() {
     const maxSpeed = isBackward ? MAX_SPEED_BACKWARD : MAX_SPEED_FORWARD;
     const target = isMoving && isPastDelay ? maxSpeed * (isBackward ? -1 : 1) : 0;
     currentSpeed.current = THREE.MathUtils.lerp(currentSpeed.current, target, ACCELERATION * delta);
-    groupRef.current.position.z -= currentSpeed.current * delta;
+    groupRef.current.position.addScaledVector(facingDirection.current, currentSpeed.current * delta);
   });
 
   useEffect(() => {

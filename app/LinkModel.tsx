@@ -3,10 +3,11 @@ import { useAnimations, useGLTF, useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const MAX_SPEED_FORWARD = 4;
+const MAX_SPEED_FORWARD = 4.5;
 const MAX_SPEED_BACKWARD = 3.5;
 const ACCELERATION = 10;
 const START_DELAY = 0.15; // Realistic running start instead of sliding
+const TURN_SPEED = 3.5;
 
 export const MOVEMENT_STATES = {
   IDLE: 'IDLE',
@@ -37,6 +38,8 @@ export function LinkModel() {
 
   const forwardPressed = useKeyboardControls(state => state.forward);
   const backwardPressed = useKeyboardControls(state => state.backward);
+  const leftPressed = useKeyboardControls(state => state.left);
+  const rightPressed = useKeyboardControls(state => state.right);
   let movementState: MovementState = MOVEMENT_STATES.IDLE;
   if (forwardPressed) {
     movementState = MOVEMENT_STATES.RUNNING_FORWARD;
@@ -63,6 +66,13 @@ export function LinkModel() {
   }, [movementState, actionIdle, actionRun, actionRunBackward]);
 
   useFrame((_, delta) => {
+    if (leftPressed) groupRef.current.rotation.y += TURN_SPEED * delta;
+    if (rightPressed) groupRef.current.rotation.y -= TURN_SPEED * delta;
+    if (leftPressed || rightPressed) {
+      const y = groupRef.current.rotation.y;
+      facingDirection.current.set(-Math.sin(y), 0, -Math.cos(y));
+    }
+
     const isMoving = movementState !== MOVEMENT_STATES.IDLE;
     if (isMoving) {
       forwardHeldTime.current += delta;

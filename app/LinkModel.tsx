@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { MOVEMENT_STATES, MovementState } from './types';
 
 const MAX_SPEED = 5;
-const ACCELERATION = 5;
+const ACCELERATION = 10;
 
 /**
  * This delay makes it look like Link is actually pushing

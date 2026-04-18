@@ -2,16 +2,17 @@ import React, { useEffect, useRef } from 'react';
 import { useAnimations, useGLTF, useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { MOVEMENT_STATES, MovementState } from './types';
 
 const MAX_SPEED = 5;
 const ACCELERATION = 10;
+const START_DELAY = 0.15; // Realistic running start instead of sliding
 
-/**
- * This delay makes it look like Link is actually pushing
- * forward when starting to run instead of sliding.
-*/
-const START_DELAY = 0.15;
+export const MOVEMENT_STATES = {
+  IDLE: 'IDLE',
+  RUNNING_FORWARD: 'RUNNING_FORWARD',
+} as const;
+
+export type MovementState = typeof MOVEMENT_STATES[keyof typeof MOVEMENT_STATES];
 
 export function LinkModel() {
   const groupRef = useRef<THREE.Group>(null!);
@@ -31,13 +32,13 @@ export function LinkModel() {
 
   const forwardPressed = useKeyboardControls(state => state.forward);
   const movementState: MovementState = forwardPressed
-    ? MOVEMENT_STATES.RUNNING
+    ? MOVEMENT_STATES.RUNNING_FORWARD
     : MOVEMENT_STATES.IDLE;
 
   useEffect(() => {
     const transitionDuration = 0.5;
 
-    if (movementState === MOVEMENT_STATES.RUNNING) {
+    if (movementState === MOVEMENT_STATES.RUNNING_FORWARD) {
       actionIdle?.fadeOut(transitionDuration);
       actionRun?.reset().fadeIn(transitionDuration).play();
     } else {
@@ -47,7 +48,7 @@ export function LinkModel() {
   }, [movementState, actionIdle, actionRun]);
 
   useFrame((_, delta) => {
-    const isRunning = movementState === MOVEMENT_STATES.RUNNING;
+    const isRunning = movementState === MOVEMENT_STATES.RUNNING_FORWARD;
     if (isRunning) {
       forwardHeldTime.current += delta;
     } else {

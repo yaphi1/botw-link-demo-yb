@@ -3,6 +3,9 @@ import { useAnimations, useGLTF, useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
+type RenderMode = 'textured' | 'solid' | 'wireframe';
+const RENDER_MODE: RenderMode = 'textured';
+
 const MAX_SPEED_FORWARD = 4.5;
 const MAX_SPEED_BACKWARD = 3.5;
 const ACCELERATION = 10;
@@ -93,6 +96,11 @@ export function LinkModel() {
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+        if (RENDER_MODE === 'wireframe') {
+          child.material = new THREE.MeshBasicMaterial({ wireframe: true, color: 0x0098db });
+        } else if (RENDER_MODE === 'solid') {
+          child.material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+        }
       }
     });
   }, [characterModel]);

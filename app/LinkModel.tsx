@@ -36,28 +36,29 @@ export function LinkModel() {
 
   const forwardPressed = useKeyboardControls(state => state.forward);
   const backwardPressed = useKeyboardControls(state => state.backward);
-  const movementState: MovementState = forwardPressed
-    ? MOVEMENT_STATES.RUNNING_FORWARD
-    : backwardPressed
-    ? MOVEMENT_STATES.RUNNING_BACKWARD
-    : MOVEMENT_STATES.IDLE;
+  let movementState: MovementState = MOVEMENT_STATES.IDLE;
+  if (forwardPressed) {
+    movementState = MOVEMENT_STATES.RUNNING_FORWARD;
+  } else if (backwardPressed) {
+    movementState = MOVEMENT_STATES.RUNNING_BACKWARD;
+  }
 
   useEffect(() => {
     const transitionDuration = 0.5;
-
+    let activeAction = actionIdle;
     if (movementState === MOVEMENT_STATES.RUNNING_FORWARD) {
-      actionIdle?.fadeOut(transitionDuration);
-      actionRunBackward?.fadeOut(transitionDuration);
-      actionRun?.reset().fadeIn(transitionDuration).play();
+      activeAction = actionRun;
     } else if (movementState === MOVEMENT_STATES.RUNNING_BACKWARD) {
-      actionIdle?.fadeOut(transitionDuration);
-      actionRun?.fadeOut(transitionDuration);
-      actionRunBackward?.reset().fadeIn(transitionDuration).play();
-    } else {
-      actionRun?.fadeOut(transitionDuration);
-      actionRunBackward?.fadeOut(transitionDuration);
-      actionIdle?.reset().fadeIn(transitionDuration).play();
+      activeAction = actionRunBackward;
     }
+
+    [actionIdle, actionRun, actionRunBackward].forEach(action => {
+      if (action !== activeAction) {
+        action?.fadeOut(transitionDuration);
+      } else {
+        action?.reset().fadeIn(transitionDuration).play();
+      }
+    });
   }, [movementState, actionIdle, actionRun, actionRunBackward]);
 
   useFrame((_, delta) => {

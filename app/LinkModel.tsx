@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
-import { useAnimations, useGLTF } from '@react-three/drei';
+import React, { useEffect, useState } from 'react';
+import { useAnimations, useGLTF, useKeyboardControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { MOVEMENT_STATES, MovementState } from './types';
 
-export function LinkModel({ movementState } : { movementState: MovementState }) {
+export function LinkModel() {
+  const [movementState, setMovementState] = useState<MovementState>(MOVEMENT_STATES.IDLE);
+
   const characterImport = useGLTF('/3d_assets/link_sword_and_shield.glb');
   const characterModel = characterImport.scene;
   const idleAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle.glb');
@@ -14,8 +16,17 @@ export function LinkModel({ movementState } : { movementState: MovementState }) 
     runAnimImport.animations[0],
   ];
   const { actions } = useAnimations(animations, characterModel);
-
   const [actionIdle, actionRun] = Object.values(actions);
+
+  const forwardPressed = useKeyboardControls(state => state.forward);
+
+  useEffect(() => {
+    if (forwardPressed) {
+      setMovementState(MOVEMENT_STATES.RUNNING);
+    } else {
+      setMovementState(MOVEMENT_STATES.IDLE);
+    }
+  }, [forwardPressed]);
 
   useEffect(() => {
     const transitionDuration = 0.5;

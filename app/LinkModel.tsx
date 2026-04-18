@@ -1,9 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAnimations, useGLTF, useKeyboardControls } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { MOVEMENT_STATES, MovementState } from './types';
 
+const MAX_SPEED = 5;
+const ACCELERATION = 5;
+
+/**
+ * This delay makes it look like Link is actually pushing
+ * forward when starting to run instead of sliding.
+*/
+const START_DELAY = 0.15;
+
 export function LinkModel() {
+  const groupRef = useRef<THREE.Group>(null!);
+  const currentSpeed = useRef(0);
+  const forwardHeldTime = useRef(0);
   const characterImport = useGLTF('/3d_assets/link_sword_and_shield.glb');
   const characterModel = characterImport.scene;
   const idleAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle.glb');
@@ -33,6 +46,20 @@ export function LinkModel() {
     }
   }, [movementState, actionIdle, actionRun]);
 
+  useFrame((_, delta) => {
+    const isRunning = movementState === MOVEMENT_STATES.RUNNING;
+    if (isRunning) {
+      forwardHeldTime.current += delta;
+    } else {
+      forwardHeldTime.current = 0;
+    }
+
+    const isPastDelay = forwardHeldTime.current >= START_DELAY;
+    const target = isRunning && isPastDelay ? MAX_SPEED : 0;
+    currentSpeed.current = THREE.MathUtils.lerp(currentSpeed.current, target, ACCELERATION * delta);
+    groupRef.current.position.z -= currentSpeed.current * delta;
+  });
+
   useEffect(() => {
     characterModel.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -42,5 +69,9 @@ export function LinkModel() {
     });
   }, [characterModel]);
 
-  return <primitive object={characterModel} dispose={null} position={[0, 0, 0]} />;
+  return (
+    <group ref={groupRef}>
+      <primitive object={characterModel} dispose={null} rotation={[0, Math.PI, 0]} />
+    </group>
+  );
 }

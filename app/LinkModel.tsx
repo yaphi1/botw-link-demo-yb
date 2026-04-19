@@ -30,7 +30,7 @@ export function LinkModel() {
   const characterImport = useGLTF('/3d_assets/link_sword_and_shield.glb');
   const characterModel = characterImport.scene;
   const idlePlainAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle_plain.glb');
-  // const idleSwingAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle_swing.glb');
+  const idleSwingAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle_swing.glb');
   const runAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_run.glb');
   const runBackwardAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_run_backward.glb');
   const turnLeftAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_turn_left.glb');
@@ -40,8 +40,8 @@ export function LinkModel() {
     // Each GLB contains all armature clips from the Blender project, not just one.
     // Clone and rename to guarantee unique keys in the actions map.
     const clips: [THREE.AnimationClip, string][] = [
-      [idlePlainAnimImport.animations[0], 'idle'],
-      // [idleSwingAnimImport.animations[1], 'idleSwing'],
+      [idlePlainAnimImport.animations[0], 'idlePlain'],
+      [idleSwingAnimImport.animations[1], 'idleSwing'],
       [runAnimImport.animations[0], 'run'],
       [runBackwardAnimImport.animations[0], 'runBackward'],
       [turnLeftAnimImport.animations[2], 'turnLeft'],
@@ -53,16 +53,17 @@ export function LinkModel() {
       return clonedClip;
     });
   }, [
-    characterModel,
     idlePlainAnimImport,
+    idleSwingAnimImport,
     runAnimImport,
     runBackwardAnimImport,
     turnLeftAnimImport,
     turnRightAnimImport,
   ]);
 
-  const { actions } = useAnimations(animations, characterModel);
-  const actionIdle = actions['idle'];
+  const { actions, mixer } = useAnimations(animations, characterModel);
+  const actionIdlePlain = actions['idlePlain'];
+  const actionIdleSwing = actions['idleSwing'];
   const actionRun = actions['run'];
   const actionRunBackward = actions['runBackward'];
   const actionTurnLeft = actions['turnLeft'];
@@ -83,12 +84,27 @@ export function LinkModel() {
   } else if (rightPressed) {
     movementState = MOVEMENT_STATES.TURNING_RIGHT;
   }
+  useEffect(() => {
+    if (!mixer || !actionIdlePlain || !actionIdleSwing) return;
+    const alternateIdleOnCycleComplete = (event: THREE.Event & { action: THREE.AnimationAction }) => {
+      if (movementState !== MOVEMENT_STATES.IDLE) return;
+      if (event.action === actionIdlePlain) {
+        actionIdlePlain.fadeOut(0.5);
+        actionIdleSwing.reset().fadeIn(0.5).play();
+      } else if (event.action === actionIdleSwing) {
+        actionIdleSwing.fadeOut(1);
+        actionIdlePlain.reset().fadeIn(0.05).play();
+      }
+    };
+    mixer.addEventListener('loop', alternateIdleOnCycleComplete);
+    return () => { mixer.removeEventListener('loop', alternateIdleOnCycleComplete); };
+  }, [mixer, actionIdlePlain, actionIdleSwing, movementState]);
 
   useEffect(() => {
     const transitionDuration = 0.3;
-    const allActions = [actionIdle, actionRun, actionRunBackward, actionTurnLeft, actionTurnRight];
+    const allActions = [actionIdlePlain, actionIdleSwing, actionRun, actionRunBackward, actionTurnLeft, actionTurnRight];
 
-    let activeAction = actionIdle;
+    let activeAction = actionIdlePlain;
     if (movementState === MOVEMENT_STATES.RUNNING_FORWARD) {
       activeAction = actionRun;
     } else if (movementState === MOVEMENT_STATES.RUNNING_BACKWARD) {
@@ -106,7 +122,15 @@ export function LinkModel() {
         action?.reset().fadeIn(transitionDuration).play();
       }
     });
-  }, [movementState, actionIdle, actionRun, actionRunBackward, actionTurnLeft, actionTurnRight]);
+  }, [
+    movementState,
+    actionIdlePlain,
+    actionIdleSwing,
+    actionRun,
+    actionRunBackward,
+    actionTurnLeft,
+    actionTurnRight,
+  ]);
 
   useFrame((_, delta) => {
     if (leftPressed) { groupRef.current.rotation.y += TURN_SPEED * delta; }

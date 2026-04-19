@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function Ground() {
+export function GroundGrid() {
   return (
     <>
       <mesh

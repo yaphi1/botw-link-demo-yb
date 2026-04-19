@@ -2,7 +2,8 @@ import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls, OrbitControls, Html, Environment } from '@react-three/drei';
 import { LinkModel } from './LinkModel';
-import { Ground } from './Ground';
+// import { GroundGrass } from './GroundGrass';
+import { GroundGrid } from './GroundGrid';
 
 export default function Scene() {
   return (
@@ -27,7 +28,8 @@ export default function Scene() {
             intensity={1}
             castShadow
           />
-          <Ground />
+          {/* <GroundGrass /> */}
+          <GroundGrid />
           <LinkModel />
           <OrbitControls target={[0, 1, 0]} />
         </Suspense>

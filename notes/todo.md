@@ -1,2 +1,4 @@
 - implement camera options
-- scenery
+- add more to town
+- maybe create other locales
+- consider collisions and capsule-based movement

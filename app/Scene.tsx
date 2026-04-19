@@ -2,8 +2,9 @@ import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls, OrbitControls, Html, Environment } from '@react-three/drei';
 import { LinkModel } from './LinkModel';
-// import { GroundGrass } from './GroundGrass';
 import { GroundGrid } from './GroundGrid';
+import { Town } from './Town';
+import { Sky } from '@react-three/drei'
 
 export default function Scene() {
   return (
@@ -28,8 +29,14 @@ export default function Scene() {
             intensity={1}
             castShadow
           />
-          {/* <GroundGrass /> */}
-          <GroundGrid />
+          {/* <GroundGrid /> */}
+          <Sky
+            distance={450000}
+            sunPosition={[-10, 10, 0]}
+            inclination={0}
+            azimuth={0.25}
+          />
+          <Town />
           <LinkModel />
           <OrbitControls target={[0, 1, 0]} />
         </Suspense>

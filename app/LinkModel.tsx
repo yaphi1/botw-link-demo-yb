@@ -12,7 +12,7 @@ const ACCELERATION = 10;
 const START_DELAY = 0.15; // Realistic running start instead of sliding
 const TURN_SPEED = 3.5;
 
-export const MOVEMENT_STATES = {
+const MOVEMENT_STATES = {
   IDLE: 'IDLE',
   RUNNING_FORWARD: 'RUNNING_FORWARD',
   RUNNING_BACKWARD: 'RUNNING_BACKWARD',
@@ -20,7 +20,7 @@ export const MOVEMENT_STATES = {
   TURNING_RIGHT: 'TURNING_RIGHT',
 } as const;
 
-export type MovementState = typeof MOVEMENT_STATES[keyof typeof MOVEMENT_STATES];
+type MovementState = typeof MOVEMENT_STATES[keyof typeof MOVEMENT_STATES];
 
 export function LinkModel() {
   const groupRef = useRef<THREE.Group>(null!);

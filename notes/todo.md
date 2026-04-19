@@ -1,5 +1,2 @@
-- code refactor
-- controls
-- forward movement
-- directional animations
+- improve turning
 - scenery

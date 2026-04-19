@@ -26,7 +26,7 @@ export default function Scene() {
             intensity={1}
             castShadow
           />
-          <mesh 
+          <mesh
             rotation={[-Math.PI / 2, 0, 0]}
             position={[0, 0, 0]}
             receiveShadow

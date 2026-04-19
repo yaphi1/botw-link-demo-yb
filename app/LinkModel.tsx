@@ -29,8 +29,8 @@ export function LinkModel() {
   const facingDirection = useRef(new THREE.Vector3(0, 0, -1));
   const characterImport = useGLTF('/3d_assets/link_sword_and_shield.glb');
   const characterModel = characterImport.scene;
-  // const idleAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle.glb');
-  const idleAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle_plain.glb');
+  const idlePlainAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle_plain.glb');
+  // const idleSwingAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle_swing.glb');
   const runAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_run.glb');
   const runBackwardAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_run_backward.glb');
   const turnLeftAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_turn_left.glb');
@@ -40,8 +40,8 @@ export function LinkModel() {
     // Each GLB contains all armature clips from the Blender project, not just one.
     // Clone and rename to guarantee unique keys in the actions map.
     const clips: [THREE.AnimationClip, string][] = [
-      // [idleAnimImport.animations[1], 'idle'],
-      [idleAnimImport.animations[0], 'idle'],
+      [idlePlainAnimImport.animations[0], 'idle'],
+      // [idleSwingAnimImport.animations[1], 'idleSwing'],
       [runAnimImport.animations[0], 'run'],
       [runBackwardAnimImport.animations[0], 'runBackward'],
       [turnLeftAnimImport.animations[2], 'turnLeft'],
@@ -52,7 +52,14 @@ export function LinkModel() {
       clonedClip.name = name;
       return clonedClip;
     });
-  }, [characterModel, idleAnimImport, runAnimImport, runBackwardAnimImport, turnLeftAnimImport, turnRightAnimImport]);
+  }, [
+    characterModel,
+    idlePlainAnimImport,
+    runAnimImport,
+    runBackwardAnimImport,
+    turnLeftAnimImport,
+    turnRightAnimImport,
+  ]);
 
   const { actions } = useAnimations(animations, characterModel);
   const actionIdle = actions['idle'];

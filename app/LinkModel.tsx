@@ -38,30 +38,17 @@ export function LinkModel() {
   const animations = useMemo(() => {
     // Each GLB contains all armature clips from the Blender project, not just one.
     // Clone and rename to guarantee unique keys in the actions map.
-
-    // Find the root bone name so we can strip its tracks from turn clips.
-    // Root motion (position + rotation on the root bone) fights with the manual groupRef rotation.
-    let rootBoneName = '';
-    characterModel.traverse(obj => {
-      if (!rootBoneName && obj instanceof THREE.Bone) {
-        rootBoneName = obj.name;
-      }
-    });
-
-    const clips: [THREE.AnimationClip, string, boolean][] = [
-      [idleAnimImport.animations[1], 'idle', false],
-      [runAnimImport.animations[0], 'run', false],
-      [runBackwardAnimImport.animations[0], 'runBackward', false],
-      [turnLeftAnimImport.animations[2], 'turnLeft', true],
-      [turnRightAnimImport.animations[2], 'turnRight', true],
+    const clips: [THREE.AnimationClip, string][] = [
+      [idleAnimImport.animations[1], 'idle'],
+      [runAnimImport.animations[0], 'run'],
+      [runBackwardAnimImport.animations[0], 'runBackward'],
+      [turnLeftAnimImport.animations[2], 'turnLeft'],
+      [turnRightAnimImport.animations[2], 'turnRight'],
     ];
-    return clips.map(([clip, name, stripRootMotion]) => {
-      const c = clip.clone();
-      c.name = name;
-      if (stripRootMotion && rootBoneName) {
-        c.tracks = c.tracks.filter(track => track.name.split('.')[0] !== rootBoneName);
-      }
-      return c;
+    return clips.map(([clip, name]) => {
+      const clonedClip = clip.clone();
+      clonedClip.name = name;
+      return clonedClip;
     });
   }, [characterModel, idleAnimImport, runAnimImport, runBackwardAnimImport, turnLeftAnimImport, turnRightAnimImport]);
 

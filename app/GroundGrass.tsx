@@ -2,10 +2,10 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
-const BLADE_COUNT = 100000;
+const BLADE_COUNT = 250000;
 const GROUND_SIZE = 40;
-const BLADE_HEIGHT = 0.3;
-const BLADE_WIDTH = 0.06;
+const BLADE_HEIGHT = 0.15;
+const BLADE_WIDTH = 0.1;
 const BLADE_BEND = 0.14;
 
 function createBladeGeometry(): THREE.BufferGeometry {
@@ -61,37 +61,76 @@ function createBladeGeometry(): THREE.BufferGeometry {
   return geometry;
 }
 
+const vertexShader = /* glsl */`
+  uniform float time;
+
+  varying float vHeight;
+  varying vec3 vNormal;
+
+  void main() {
+    vHeight = clamp(position.y / ${BLADE_HEIGHT.toFixed(2)}, 0.0, 1.0);
+    float t = vHeight * vHeight;
+
+    vec3 pos = position;
+
+    // Wind: tip sways most, base is anchored
+    float phase = instanceMatrix[3][0] * 1.7 + instanceMatrix[3][2] * 1.7;
+    float sway = (sin(time * 2.5 + phase) * 0.06 + sin(time * 1.1 + phase * 0.8) * 0.025) * t;
+    pos.x += sway;
+    pos.z += sway * 0.4;
+
+    // World-space normal (uniform scale: mat3 of instanceMatrix is correct)
+    vNormal = normalize(mat3(instanceMatrix) * normal);
+
+    gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(pos, 1.0);
+  }
+`;
+
+const fragmentShader = /* glsl */`
+  uniform vec3 baseColor;
+  uniform vec3 tipColor;
+
+  varying float vHeight;
+  varying vec3 vNormal;
+
+  void main() {
+    // Height gradient: dark base to bright tip
+    vec3 col = mix(baseColor, tipColor, vHeight);
+
+    // Half-Lambert diffuse — matches scene's directional light at (2, 5, 2)
+    vec3 lightDir = normalize(vec3(2.0, 5.0, 2.0));
+    vec3 n = gl_FrontFacing ? vNormal : -vNormal;
+    float diff = dot(n, lightDir) * 0.3 + 0.7;
+
+    // Fake AO: base receives less light as if shaded by surrounding blades
+    float ao = mix(0.8, 1.0, vHeight);
+
+    gl_FragColor = vec4(col * diff * ao, 1.0);
+  }
+`;
+
 export function GroundGrass() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  // Shared object — assigning to shader.uniforms.time means updating .value updates the GPU uniform
-  const timeUniform = useRef({ value: 0 });
+  const matRef  = useRef<THREE.ShaderMaterial | null>(null);
 
   const bladeGeometry = useMemo(() => createBladeGeometry(), []);
-
-  const bladeMaterial = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({ color: '#5ca840', side: THREE.DoubleSide });
-    mat.onBeforeCompile = (shader) => {
-      shader.uniforms.time = timeUniform.current;
-      shader.vertexShader = `uniform float time;\n` + shader.vertexShader;
-      shader.vertexShader = shader.vertexShader.replace(
-        '#include <begin_vertex>',
-        `#include <begin_vertex>
-        // Vertices near the base don't move; tip sways most (quadratic falloff)
-        float heightFactor = clamp(position.y / ${BLADE_HEIGHT.toFixed(2)}, 0.0, 1.0);
-        float t = heightFactor * heightFactor;
-        // Per-instance phase from world-space position creates a travelling wave
-        float phase = instanceMatrix[3].x * 1.7 + instanceMatrix[3].z * 1.7;
-        float sway = (sin(time * 2.5 + phase) * 0.06 + sin(time * 1.1 + phase * 0.8) * 0.025) * t;
-        transformed.x += sway;
-        transformed.z += sway * 0.4;`,
-      );
-    };
-    return mat;
-  }, []);
 
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
+
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        time:      { value: 0 },
+        baseColor: { value: new THREE.Color('#72d040') },
+        tipColor:  { value: new THREE.Color('#c4deab') },
+      },
+      vertexShader,
+      fragmentShader,
+      side: THREE.DoubleSide,
+    });
+    matRef.current = mat;
+    mesh.material = mat;
 
     const dummy = new THREE.Object3D();
     for (let i = 0; i < BLADE_COUNT; i++) {
@@ -101,15 +140,19 @@ export function GroundGrass() {
         (Math.random() - 0.5) * GROUND_SIZE,
       );
       dummy.rotation.y = Math.random() * Math.PI * 2;
-      dummy.scale.setScalar(0.5 + Math.random() * 0.9);
+      dummy.scale.setScalar(0.8 + Math.random() * 0.7);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
     }
     mesh.instanceMatrix.needsUpdate = true;
+
+    return () => mat.dispose();
   }, []);
 
   useFrame((state) => {
-    timeUniform.current.value = state.clock.elapsedTime;
+    if (matRef.current) {
+      matRef.current.uniforms.time.value = state.clock.elapsedTime;
+    }
   });
 
   return (
@@ -118,7 +161,7 @@ export function GroundGrass() {
         <planeGeometry args={[GROUND_SIZE, GROUND_SIZE]} />
         <meshStandardMaterial color="#3d6b35" />
       </mesh>
-      <instancedMesh ref={meshRef} args={[bladeGeometry, bladeMaterial, BLADE_COUNT]} />
+      <instancedMesh ref={meshRef} args={[bladeGeometry, undefined, BLADE_COUNT]} />
     </>
   );
 }

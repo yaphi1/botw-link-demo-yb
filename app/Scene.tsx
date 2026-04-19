@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls, OrbitControls, Html, Environment } from '@react-three/drei';
 import { LinkModel } from './LinkModel';
+import { Ground } from './Ground';
 
 export default function Scene() {
   return (
@@ -26,16 +27,8 @@ export default function Scene() {
             intensity={1}
             castShadow
           />
-          <mesh
-            rotation={[-Math.PI / 2, 0, 0]}
-            position={[0, 0, 0]}
-            receiveShadow
-          >
-            <planeGeometry args={[20, 20]} />
-            <meshStandardMaterial color="#ddd" />
-          </mesh>
-          <gridHelper args={[20, 20]} position={[0, 0.01, 0]} />
-            <LinkModel />
+          <Ground />
+          <LinkModel />
           <OrbitControls target={[0, 1, 0]} />
         </Suspense>
       </Canvas>

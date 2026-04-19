@@ -1,2 +1,2 @@
-- improve turning
+- implement camera options
 - scenery

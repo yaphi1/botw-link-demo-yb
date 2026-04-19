@@ -23,6 +23,7 @@ export default function Scene() {
         >
         <Suspense fallback={<Html center>Loading...</Html>}>
           <Environment preset="dawn" />
+          <fogExp2 attach="fog" args={['#a8c4d8', 0.012]} />
           <ambientLight intensity={0.5} />
           <directionalLight 
             position={[2, 5, 2]} 

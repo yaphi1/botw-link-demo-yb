@@ -1,13 +1,13 @@
 'use client';
 
 import styles from './page.module.css';
-import Scene from './Scene';
+import Game from './Game';
 
 export default function Home() {
   return (
     <div className={styles.page}>
       <main>
-        <Scene />
+        <Game />
       </main>
     </div>
   );

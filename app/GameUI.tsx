@@ -26,8 +26,8 @@ const controls = [
 ];
 
 export default function GameUI() {
-  const maxHearts = 3;
-  const currentHearts = 3;
+  const maxHearts = 10;
+  const currentHearts = 10;
   const [isControlsOpen, setIsControlsOpen] = useState(false);
 
   return (

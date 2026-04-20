@@ -2,7 +2,6 @@ import React, { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls, Html, Environment } from '@react-three/drei';
 import { LinkModel } from './LinkModel';
-import { GroundGrid } from './GroundGrid';
 import { Town } from './Town';
 import { Sky } from '@react-three/drei'
 import * as THREE from 'three';
@@ -40,7 +39,6 @@ export default function Scene() {
           <fogExp2 attach="fog" args={['#a8c4d8', 0.012]} />
           <ambientLight intensity={0.5} />
           <SunLight followRef={linkRef} position={SUN_POSITION} />
-          {/* <GroundGrid /> */}
           <Sky
             distance={450000}
             sunPosition={SUN_POSITION}

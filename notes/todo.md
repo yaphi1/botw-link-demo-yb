@@ -1,2 +1,6 @@
-- maybe create other locales
-- consider making attacks and enemies
+- add game UI (health, menu)
+- add dialog system
+- add sheathed version of animations
+- find a way to reduce castle locale file size
+- add NPCs
+- add enemies and combat system

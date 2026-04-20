@@ -13,6 +13,7 @@ export function useCapsuleCollision(collidables: RefObject<THREE.Mesh[]> | undef
   const raycaster = useRef(new THREE.Raycaster());
   const normalMatrix = useRef(new THREE.Matrix3());
   const verticalVelocity = useRef(0);
+  const isGrounded = useRef(true);
 
   // Slides characterMovementVector against walls (mutates in place).
   // Returns terrain Y to snap to, or null if no ground found.
@@ -56,7 +57,9 @@ export function useCapsuleCollision(collidables: RefObject<THREE.Mesh[]> | undef
       }
     }
 
-    verticalVelocity.current += GRAVITY * delta;
+    if (!isGrounded.current) {
+      verticalVelocity.current += GRAVITY * delta;
+    }
 
     const proposedPosition = characterPosition.clone().add(characterMovementVector);
     // Extend the ray to cover the full distance the character could fall this frame
@@ -70,10 +73,12 @@ export function useCapsuleCollision(collidables: RefObject<THREE.Mesh[]> | undef
     const groundRayHits = raycaster.current.intersectObjects(meshes, false);
 
     if (groundRayHits.length > 0) {
+      isGrounded.current = true;
       verticalVelocity.current = 0;
       return groundRayHits[0].point.y;
     }
 
+    isGrounded.current = false;
     return proposedPosition.y + verticalVelocity.current * delta;
   };
 }

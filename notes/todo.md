@@ -1,4 +1,3 @@
-- implement camera options
-- add more to town
 - maybe create other locales
+- consider making attacks and enemies
 - consider collisions and capsule-based movement

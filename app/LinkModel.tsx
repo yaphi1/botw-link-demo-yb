@@ -165,7 +165,7 @@ export function LinkModel({
     currentSpeed.current = THREE.MathUtils.lerp(currentSpeed.current, target, ACCELERATION * delta);
 
     const characterMovementVector = facingDirection.current.clone().multiplyScalar(currentSpeed.current * delta);
-    const groundY = applyCollision(linkRef.current.position, characterMovementVector);
+    const groundY = applyCollision(linkRef.current.position, characterMovementVector, delta);
     linkRef.current.position.add(characterMovementVector);
     if (groundY !== null) { linkRef.current.position.y = groundY; }
   });

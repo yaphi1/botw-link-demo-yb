@@ -3,18 +3,23 @@ import type { RefObject } from 'react';
 import * as THREE from 'three';
 
 const CAPSULE_RADIUS = 1;
-// Y heights at which horizontal wall rays are cast: ankles, midsection, shoulders
-const WALL_RAY_HEIGHTS = [0.35, 0.8, 1.25];
+// Obstacles shorter than this are stepped over rather than treated as walls
+const STEP_HEIGHT = 0.6;
+// Y heights at which horizontal wall rays are cast: above step, midsection, shoulders
+const WALL_RAY_HEIGHTS = [STEP_HEIGHT, 0.8, 1.25];
+const GRAVITY = -20; // units per second²
 
 export function useCapsuleCollision(collidables: RefObject<THREE.Mesh[]> | undefined) {
   const raycaster = useRef(new THREE.Raycaster());
   const normalMatrix = useRef(new THREE.Matrix3());
+  const verticalVelocity = useRef(0);
 
   // Slides characterMovementVector against walls (mutates in place).
   // Returns terrain Y to snap to, or null if no ground found.
   return function applyCollision(
     characterPosition: THREE.Vector3,
-    characterMovementVector: THREE.Vector3
+    characterMovementVector: THREE.Vector3,
+    delta: number,
   ): number | null {
     const meshes = collidables?.current;
     if (!meshes || meshes.length === 0) return null;
@@ -51,14 +56,24 @@ export function useCapsuleCollision(collidables: RefObject<THREE.Mesh[]> | undef
       }
     }
 
+    verticalVelocity.current += GRAVITY * delta;
+
     const proposedPosition = characterPosition.clone().add(characterMovementVector);
+    // Extend the ray to cover the full distance the character could fall this frame
+    const groundRayFar = 1.5 + Math.abs(verticalVelocity.current * delta) + 0.1;
     raycaster.current.set(
       new THREE.Vector3(proposedPosition.x, proposedPosition.y + 1.5, proposedPosition.z),
       new THREE.Vector3(0, -1, 0),
     );
     raycaster.current.near = 0;
-    raycaster.current.far = 2.0;
+    raycaster.current.far = groundRayFar;
     const groundRayHits = raycaster.current.intersectObjects(meshes, false);
-    return groundRayHits.length > 0 ? groundRayHits[0].point.y : null;
+
+    if (groundRayHits.length > 0) {
+      verticalVelocity.current = 0;
+      return groundRayHits[0].point.y;
+    }
+
+    return proposedPosition.y + verticalVelocity.current * delta;
   };
 }

@@ -22,8 +22,10 @@ const MOVEMENT_STATES = {
 
 type MovementState = typeof MOVEMENT_STATES[keyof typeof MOVEMENT_STATES];
 
-export function LinkModel() {
-  const groupRef = useRef<THREE.Group>(null!);
+export function LinkModel({ ref }: { ref?: React.RefObject<THREE.Group | null> }) {
+  const internalDefaultRef = useRef<THREE.Group | null>(null);
+  const linkRef = ref ?? internalDefaultRef;
+
   const currentSpeed = useRef(0);
   const forwardHeldTime = useRef(0);
   const facingDirection = useRef(new THREE.Vector3(0, 0, -1));
@@ -133,10 +135,11 @@ export function LinkModel() {
   ]);
 
   useFrame((_, delta) => {
-    if (leftPressed) { groupRef.current.rotation.y += TURN_SPEED * delta; }
-    if (rightPressed) { groupRef.current.rotation.y -= TURN_SPEED * delta; }
+    if (!linkRef.current) { return; }
+    if (leftPressed) { linkRef.current.rotation.y += TURN_SPEED * delta; }
+    if (rightPressed) { linkRef.current.rotation.y -= TURN_SPEED * delta; }
     if (leftPressed || rightPressed) {
-      const y = groupRef.current.rotation.y;
+      const y = linkRef.current.rotation.y;
       facingDirection.current.set(-Math.sin(y), 0, -Math.cos(y));
     }
 
@@ -152,7 +155,7 @@ export function LinkModel() {
     const maxSpeed = isBackward ? MAX_SPEED_BACKWARD : MAX_SPEED_FORWARD;
     const target = isRunning && isPastDelay ? maxSpeed * (isBackward ? -1 : 1) : 0;
     currentSpeed.current = THREE.MathUtils.lerp(currentSpeed.current, target, ACCELERATION * delta);
-    groupRef.current.position.addScaledVector(facingDirection.current, currentSpeed.current * delta);
+    linkRef.current.position.addScaledVector(facingDirection.current, currentSpeed.current * delta);
   });
 
   useEffect(() => {
@@ -170,8 +173,8 @@ export function LinkModel() {
   }, [characterModel]);
 
   return (
-    <group ref={groupRef}>
+    <group ref={linkRef}>
       <primitive object={characterModel} dispose={null} rotation={[0, Math.PI, 0]} />
     </group>
   );
-}
+};

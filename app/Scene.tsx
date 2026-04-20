@@ -13,6 +13,7 @@ const SUN_POSITION: [number, number, number] = [-10, 10, 0];
 
 export default function Scene() {
   const linkRef = useRef<THREE.Group | null>(null);
+  const collidableMeshes = useRef<THREE.Mesh[]>([]);
 
   return (
     <KeyboardControls
@@ -46,8 +47,8 @@ export default function Scene() {
             inclination={0}
             azimuth={0.25}
           />
-          <Town />
-          <LinkModel ref={linkRef} />
+          <Town collidablesRef={collidableMeshes} />
+          <LinkModel ref={linkRef} collidables={collidableMeshes} />
           <FollowCamera followRef={linkRef} />
         </Suspense>
       </Canvas>

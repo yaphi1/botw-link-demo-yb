@@ -12,6 +12,9 @@ const ACCELERATION = 10;
 const START_DELAY = 0.15; // Realistic running start instead of sliding
 const TURN_SPEED = 3.5;
 
+const CAPSULE_RADIUS = 1;
+const WALL_RAY_HEIGHTS = [0.35, 0.8, 1.25];
+
 const MOVEMENT_STATES = {
   IDLE: 'IDLE',
   RUNNING_FORWARD: 'RUNNING_FORWARD',
@@ -22,13 +25,21 @@ const MOVEMENT_STATES = {
 
 type MovementState = typeof MOVEMENT_STATES[keyof typeof MOVEMENT_STATES];
 
-export function LinkModel({ ref }: { ref?: React.RefObject<THREE.Group | null> }) {
+export function LinkModel({
+  ref,
+  collidables,
+}: {
+  ref?: React.RefObject<THREE.Group | null>;
+  collidables?: React.RefObject<THREE.Mesh[]>;
+}) {
   const internalDefaultRef = useRef<THREE.Group | null>(null);
   const linkRef = ref ?? internalDefaultRef;
 
   const currentSpeed = useRef(0);
   const forwardHeldTime = useRef(0);
   const facingDirection = useRef(new THREE.Vector3(0, 0, -1));
+  const raycaster = useRef(new THREE.Raycaster());
+  const normalMatrix = useRef(new THREE.Matrix3());
   const characterImport = useGLTF('/3d_assets/link_sword_and_shield.glb');
   const characterModel = characterImport.scene;
   const idlePlainAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle_plain.glb');
@@ -155,7 +166,52 @@ export function LinkModel({ ref }: { ref?: React.RefObject<THREE.Group | null> }
     const maxSpeed = isBackward ? MAX_SPEED_BACKWARD : MAX_SPEED_FORWARD;
     const target = isRunning && isPastDelay ? maxSpeed * (isBackward ? -1 : 1) : 0;
     currentSpeed.current = THREE.MathUtils.lerp(currentSpeed.current, target, ACCELERATION * delta);
-    linkRef.current.position.addScaledVector(facingDirection.current, currentSpeed.current * delta);
+
+    const moveVec = facingDirection.current.clone().multiplyScalar(currentSpeed.current * delta);
+    const meshes = collidables?.current;
+
+    if (meshes && meshes.length > 0 && moveVec.lengthSq() > 1e-8) {
+      const moveLen = moveVec.length();
+      const moveDir = moveVec.clone().normalize();
+      const pos = linkRef.current.position;
+      const wallNormal = new THREE.Vector3();
+      let hasWall = false;
+
+      for (const yOff of WALL_RAY_HEIGHTS) {
+        raycaster.current.set(new THREE.Vector3(pos.x, pos.y + yOff, pos.z), moveDir);
+        raycaster.current.near = 0;
+        raycaster.current.far = CAPSULE_RADIUS + moveLen;
+        const hits = raycaster.current.intersectObjects(meshes, false);
+        if (hits.length > 0 && hits[0].distance < CAPSULE_RADIUS + moveLen) {
+          hasWall = true;
+          if (hits[0].face) {
+            normalMatrix.current.getNormalMatrix(hits[0].object.matrixWorld);
+            wallNormal.add(hits[0].face.normal.clone().applyMatrix3(normalMatrix.current));
+          }
+        }
+      }
+
+      if (hasWall) {
+        wallNormal.normalize().setY(0);
+        const dot = moveVec.dot(wallNormal);
+        if (dot < 0) {
+          moveVec.addScaledVector(wallNormal, -dot);
+        }
+      }
+    }
+
+    linkRef.current.position.add(moveVec);
+
+    if (meshes && meshes.length > 0) {
+      const pos = linkRef.current.position;
+      raycaster.current.set(new THREE.Vector3(pos.x, pos.y + 1.5, pos.z), new THREE.Vector3(0, -1, 0));
+      raycaster.current.near = 0;
+      raycaster.current.far = 2.0;
+      const groundHits = raycaster.current.intersectObjects(meshes, false);
+      if (groundHits.length > 0) {
+        linkRef.current.position.y = groundHits[0].point.y;
+      }
+    }
   });
 
   useEffect(() => {

@@ -5,11 +5,12 @@ import * as THREE from 'three';
 type RenderMode = 'textured' | 'solid' | 'wireframe';
 const RENDER_MODE: RenderMode = 'textured';
 
-export function Town() {
+export function Town({ collidablesRef }: { collidablesRef?: React.RefObject<THREE.Mesh[]> }) {
   const townImport = useGLTF('/3d_assets/botw_town.glb');
   const townModel = townImport.scene;
 
   useEffect(() => {
+    const meshes: THREE.Mesh[] = [];
     townModel.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         if (child.name === 'ground') {
@@ -20,9 +21,13 @@ export function Town() {
         } else if (RENDER_MODE === 'solid') {
           child.material = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
         }
+        meshes.push(child);
       }
     });
-  }, [townModel]);
+    if (collidablesRef) {
+      collidablesRef.current = meshes;
+    }
+  }, [townModel, collidablesRef]);
 
   return (
     <primitive object={townModel} dispose={null} />

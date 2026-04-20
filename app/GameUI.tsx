@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 function Heart({ filled }: { filled: boolean }) {
   const color = filled ? '#d93a10' : '#3a1010';
   return (
@@ -15,9 +17,18 @@ function Heart({ filled }: { filled: boolean }) {
   );
 }
 
+const controls = [
+  { key: 'A / D', action: 'rotate camera' },
+  { key: 'W / S', action: 'zoom camera' },
+  { key: 'R / F', action: 'raise / lower camera' },
+  { key: '↑ ↓ ← →', action: 'move' },
+  { key: 'Space', action: 'slash' },
+];
+
 export default function GameUI() {
   const maxHearts = 3;
   const currentHearts = 3;
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
 
   return (
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 10 }}>
@@ -33,8 +44,61 @@ export default function GameUI() {
           <Heart key={index} filled={index < currentHearts} />
         ))}
       </div>
-      <div style={{ position: 'absolute', bottom: 16, right: 16, color: 'white', fontFamily: 'monospace' }}>
-        WASD: camera &nbsp; Arrows: move &nbsp; Space: slash
+      <div style={{ position: 'absolute', bottom: 16, right: 16, pointerEvents: 'auto' }}>
+        {isControlsOpen && (
+          <div style={{
+            position: 'absolute',
+            bottom: '44px',
+            right: 0,
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            fontFamily: 'monospace',
+            fontSize: '13px',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            whiteSpace: 'nowrap',
+            border: '1px solid rgba(255,255,255,0.15)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '12px', opacity: 0.6, letterSpacing: '0.05em' }}>CONTROLS</span>
+              <button
+                onClick={() => setIsControlsOpen(false)}
+                style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '0 0 0 16px', fontSize: '16px', lineHeight: 1, opacity: 0.6 }}
+              >
+                ×
+              </button>
+            </div>
+            {controls.map(({ key, action }) => (
+              <div key={key} style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', marginBottom: '4px' }}>
+                <span style={{ opacity: 0.5 }}>{action}</span>
+                <span style={{ fontWeight: 'bold' }}>{key}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <button
+          onClick={() => setIsControlsOpen(prev => !prev)}
+          style={{
+            background: 'rgba(0,0,0,0.6)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '6px',
+            color: 'white',
+            cursor: 'pointer',
+            width: '36px',
+            height: '36px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '8px',
+          }}
+          aria-label="Controls"
+        >
+          {[0, 1, 2].map(i => (
+            <span key={i} style={{ display: 'block', width: '16px', height: '2px', background: 'white', borderRadius: '1px' }} />
+          ))}
+        </button>
       </div>
     </div>
   );

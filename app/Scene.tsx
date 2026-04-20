@@ -31,7 +31,7 @@ export default function Scene() {
     >
       <Canvas
           style={{ height: '100vh', width: '100%' }}
-          camera={{ position: [0, 1.5, 3] }}
+          camera={{ position: [0, 1.5, 3], near: 0.5 }}
           shadows="soft"
         >
         <Suspense fallback={<Html center>Loading...</Html>}>

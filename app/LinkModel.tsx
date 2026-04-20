@@ -36,6 +36,8 @@ export function LinkModel({
   const currentSpeed = useRef(0);
   const forwardHeldTime = useRef(0);
   const facingDirection = useRef(new THREE.Vector3(0, 0, -1));
+  const isSlashing = useRef(false);
+  const movementStateRef = useRef<MovementState>(MOVEMENT_STATES.IDLE);
   const applyCollision = useCapsuleCollision(collidables);
   const characterImport = useGLTF('/3d_assets/link_sword_and_shield.glb');
   const characterModel = characterImport.scene;
@@ -43,6 +45,7 @@ export function LinkModel({
   const idleSwingAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_idle_swing.glb');
   const runAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_run.glb');
   const runBackwardAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_run_backward.glb');
+  const slashAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_slash.glb');
   const turnLeftAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_turn_left.glb');
   const turnRightAnimImport = useGLTF('/3d_assets/animations/sword_and_shield_turn_right.glb');
 
@@ -54,6 +57,7 @@ export function LinkModel({
       [idleSwingAnimImport.animations[1], 'idleSwing'],
       [runAnimImport.animations[0], 'run'],
       [runBackwardAnimImport.animations[0], 'runBackward'],
+      [slashAnimImport.animations[0], 'slash'],
       [turnLeftAnimImport.animations[2], 'turnLeft'],
       [turnRightAnimImport.animations[2], 'turnRight'],
     ];
@@ -67,6 +71,7 @@ export function LinkModel({
     idleSwingAnimImport,
     runAnimImport,
     runBackwardAnimImport,
+    slashAnimImport,
     turnLeftAnimImport,
     turnRightAnimImport,
   ]);
@@ -76,6 +81,7 @@ export function LinkModel({
   const actionIdleSwing = actions['idleSwing'];
   const actionRun = actions['run'];
   const actionRunBackward = actions['runBackward'];
+  const actionSlash = actions['slash'];
   const actionTurnLeft = actions['turnLeft'];
   const actionTurnRight = actions['turnRight'];
 
@@ -83,6 +89,7 @@ export function LinkModel({
   const backwardPressed = useKeyboardControls(state => state.backward);
   const leftPressed = useKeyboardControls(state => state.left);
   const rightPressed = useKeyboardControls(state => state.right);
+  const slashPressed = useKeyboardControls(state => state.slash);
 
   let movementState: MovementState = MOVEMENT_STATES.IDLE;
   if (forwardPressed) {
@@ -111,6 +118,16 @@ export function LinkModel({
   }, [mixer, actionIdlePlain, actionIdleSwing, movementState]);
 
   useEffect(() => {
+    if (!slashPressed || isSlashing.current || !actionSlash) return;
+    const allMovementActions = [actionIdlePlain, actionIdleSwing, actionRun, actionRunBackward, actionTurnLeft, actionTurnRight];
+    isSlashing.current = true;
+    allMovementActions.forEach(a => a?.fadeOut(0.1));
+    actionSlash.reset().setLoop(THREE.LoopOnce, 1).fadeIn(0.1).play();
+  }, [slashPressed, actionSlash, actionIdlePlain, actionIdleSwing, actionRun, actionRunBackward, actionTurnLeft, actionTurnRight]);
+
+
+  useEffect(() => {
+    if (isSlashing.current) return;
     const transitionDuration = 0.3;
     const allActions = [actionIdlePlain, actionIdleSwing, actionRun, actionRunBackward, actionTurnLeft, actionTurnRight];
 
@@ -144,14 +161,33 @@ export function LinkModel({
 
   useFrame((_, delta) => {
     if (!linkRef.current) { return; }
-    if (leftPressed) { linkRef.current.rotation.y += TURN_SPEED * delta; }
-    if (rightPressed) { linkRef.current.rotation.y -= TURN_SPEED * delta; }
-    if (leftPressed || rightPressed) {
-      const y = linkRef.current.rotation.y;
-      facingDirection.current.set(-Math.sin(y), 0, -Math.cos(y));
+    movementStateRef.current = movementState;
+
+    const SLASH_FADE_DURATION = 0.3;
+    if (isSlashing.current && actionSlash) {
+      const timeRemaining = actionSlash.getClip().duration - actionSlash.time;
+      if (timeRemaining <= SLASH_FADE_DURATION) {
+        isSlashing.current = false;
+        const state = movementStateRef.current;
+        let resumeAction: THREE.AnimationAction | null | undefined = actionIdlePlain;
+        if (state === MOVEMENT_STATES.RUNNING_FORWARD) { resumeAction = actionRun; }
+        else if (state === MOVEMENT_STATES.RUNNING_BACKWARD) { resumeAction = actionRunBackward; }
+        else if (state === MOVEMENT_STATES.TURNING_LEFT) { resumeAction = actionTurnLeft; }
+        else if (state === MOVEMENT_STATES.TURNING_RIGHT) { resumeAction = actionTurnRight; }
+        actionSlash.fadeOut(SLASH_FADE_DURATION);
+        resumeAction?.reset().fadeIn(SLASH_FADE_DURATION).play();
+      }
+    }
+    if (!isSlashing.current) {
+      if (leftPressed) { linkRef.current.rotation.y += TURN_SPEED * delta; }
+      if (rightPressed) { linkRef.current.rotation.y -= TURN_SPEED * delta; }
+      if (leftPressed || rightPressed) {
+        const y = linkRef.current.rotation.y;
+        facingDirection.current.set(-Math.sin(y), 0, -Math.cos(y));
+      }
     }
 
-    const isRunning = movementState === MOVEMENT_STATES.RUNNING_FORWARD || movementState === MOVEMENT_STATES.RUNNING_BACKWARD;
+    const isRunning = !isSlashing.current && (movementState === MOVEMENT_STATES.RUNNING_FORWARD || movementState === MOVEMENT_STATES.RUNNING_BACKWARD);
     if (isRunning) {
       forwardHeldTime.current += delta;
     } else {

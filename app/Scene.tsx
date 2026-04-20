@@ -27,6 +27,7 @@ export default function Scene() {
         { name: 'cameraZoomOut', keys: ['s'] },
         { name: 'cameraUp', keys: ['r'] },
         { name: 'cameraDown', keys: ['f'] },
+        { name: 'slash', keys: [' '] },
       ]}
     >
       <Canvas

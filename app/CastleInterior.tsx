@@ -5,13 +5,13 @@ import * as THREE from 'three';
 type RenderMode = 'textured' | 'solid' | 'wireframe';
 const RENDER_MODE: RenderMode = 'textured';
 
-export function Town({ collidablesRef }: { collidablesRef?: React.RefObject<THREE.Mesh[]> }) {
-  const townImport = useGLTF('/3d_assets/botw_town.glb');
-  const townModel = townImport.scene;
+export function Castle({ collidablesRef }: { collidablesRef?: React.RefObject<THREE.Mesh[]> }) {
+  const castleImport = useGLTF('/3d_assets/hyrule_castle.glb');
+  const castleModel = castleImport.scene;
 
   useEffect(() => {
     const meshes: THREE.Mesh[] = [];
-    townModel.traverse((child) => {
+    castleModel.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         if (child.name === 'ground') {
           child.receiveShadow = true;
@@ -27,9 +27,9 @@ export function Town({ collidablesRef }: { collidablesRef?: React.RefObject<THRE
     if (collidablesRef) {
       collidablesRef.current = meshes;
     }
-  }, [townModel, collidablesRef]);
+  }, [castleModel, collidablesRef]);
 
   return (
-    <primitive object={townModel} dispose={null} />
+    <primitive object={castleModel} dispose={null} />
   );
 }

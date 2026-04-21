@@ -1,18 +1,26 @@
-import React, { Suspense, useRef } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls, Html, Environment } from '@react-three/drei';
 import { LinkModel } from './LinkModel';
 import { Town } from './Town';
+import { Castle } from './CastleInterior';
 import { Sky } from '@react-three/drei'
 import * as THREE from 'three';
 import { SunLight } from './SunLight';
 import { FollowCamera } from './FollowCamera';
+import { ActiveScene } from './Game';
 
 const SUN_POSITION: [number, number, number] = [-10, 10, 0];
 
-export default function Scene() {
+export default function Scene({ activeScene }: { activeScene: ActiveScene }) {
   const linkRef = useRef<THREE.Group | null>(null);
   const collidableMeshes = useRef<THREE.Mesh[]>([]);
+
+  useEffect(() => {
+    if (linkRef.current) {
+      linkRef.current.position.set(0, 0, 0);
+    }
+  }, [activeScene]);
 
   return (
     <KeyboardControls
@@ -46,7 +54,12 @@ export default function Scene() {
             inclination={0}
             azimuth={0.25}
           />
-          <Town collidablesRef={collidableMeshes} />
+          <group visible={activeScene === 'town'}>
+            <Town collidablesRef={activeScene === 'town' ? collidableMeshes : undefined} />
+          </group>
+          <group visible={activeScene === 'castle'}>
+            <Castle collidablesRef={activeScene === 'castle' ? collidableMeshes : undefined} />
+          </group>
           <LinkModel ref={linkRef} collidables={collidableMeshes} />
           <FollowCamera followRef={linkRef} />
         </Suspense>

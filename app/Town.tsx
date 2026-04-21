@@ -7,6 +7,7 @@ const RENDER_MODE: RenderMode = 'textured';
 
 export function Town({ collidablesRef }: { collidablesRef?: React.RefObject<THREE.Mesh[]> }) {
   const townImport = useGLTF('/3d_assets/botw_town.glb');
+  // const townImport = useGLTF('/3d_assets/hyrule_castle.glb');
   const townModel = townImport.scene;
 
   useEffect(() => {

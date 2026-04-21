@@ -1,5 +1,4 @@
 - add yiga blademaster
-- find a way to reduce castle locale file size (or get it into github large file storage?)
 - add other locales
 - add game inventory
 - add dialog system

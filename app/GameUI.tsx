@@ -26,7 +26,7 @@ const controls = [
   { key: 'Space', action: 'slash' },
 ];
 
-export default function GameUI({ activeScene, onSceneChange }: { activeScene: ActiveScene; onSceneChange: (scene: ActiveScene) => void }) {
+export default function GameUI({ activeScene, onSceneChange, showYiga, onYigaToggle }: { activeScene: ActiveScene; onSceneChange: (scene: ActiveScene) => void; showYiga: boolean; onYigaToggle: () => void }) {
   const maxHearts = 10;
   const currentHearts = 10;
   const [isControlsOpen, setIsControlsOpen] = useState(false);
@@ -75,6 +75,29 @@ export default function GameUI({ activeScene, onSceneChange }: { activeScene: Ac
                 <span style={{ fontWeight: 'bold' }}>{key}</span>
               </div>
             ))}
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '10px', paddingTop: '10px' }}>
+              <div style={{ fontSize: '12px', opacity: 0.6, letterSpacing: '0.05em', fontWeight: 'bold', marginBottom: '8px' }}>ENTITIES</div>
+              <button
+                onClick={onYigaToggle}
+                style={{
+                  background: showYiga ? 'rgba(255,255,255,0.2)' : 'transparent',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '4px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  padding: '4px 10px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px',
+                  fontWeight: showYiga ? 'bold' : 'normal',
+                  opacity: showYiga ? 1 : 0.5,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  marginBottom: '8px',
+                }}
+              >
+                Yiga
+              </button>
+            </div>
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '10px', paddingTop: '10px' }}>
               <div style={{ fontSize: '12px', opacity: 0.6, letterSpacing: '0.05em', fontWeight: 'bold', marginBottom: '8px' }}>SCENE</div>
               <div style={{ display: 'flex', gap: '6px' }}>

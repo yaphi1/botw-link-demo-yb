@@ -8,11 +8,12 @@ export type ActiveScene = 'town' | 'castle';
 
 export default function Game() {
   const [activeScene, setActiveScene] = useState<ActiveScene>('town');
+  const [showYiga, setShowYiga] = useState(false);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
-      <Scene activeScene={activeScene} />
-      <GameUI activeScene={activeScene} onSceneChange={setActiveScene} />
+      <Scene activeScene={activeScene} showYiga={showYiga} />
+      <GameUI activeScene={activeScene} onSceneChange={setActiveScene} showYiga={showYiga} onYigaToggle={() => setShowYiga(prev => !prev)} />
     </div>
   );
 }

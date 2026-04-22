@@ -2,6 +2,7 @@ import React, { Suspense, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { KeyboardControls, Html, Environment } from '@react-three/drei';
 import { LinkModel } from './LinkModel';
+import { YigaModel } from './YigaModel';
 import { Town } from './Town';
 import { Castle } from './CastleInterior';
 import { Sky } from '@react-three/drei'
@@ -12,7 +13,7 @@ import { ActiveScene } from './Game';
 
 const SUN_POSITION: [number, number, number] = [-10, 10, 0];
 
-export default function Scene({ activeScene }: { activeScene: ActiveScene }) {
+export default function Scene({ activeScene, showYiga }: { activeScene: ActiveScene; showYiga: boolean }) {
   const linkRef = useRef<THREE.Group | null>(null);
   const collidableMeshes = useRef<THREE.Mesh[]>([]);
 
@@ -61,6 +62,7 @@ export default function Scene({ activeScene }: { activeScene: ActiveScene }) {
             <Castle collidablesRef={activeScene === 'castle' ? collidableMeshes : undefined} />
           </group>
           <LinkModel ref={linkRef} collidables={collidableMeshes} />
+          {showYiga && <YigaModel />}
           <FollowCamera followRef={linkRef} />
         </Suspense>
       </Canvas>

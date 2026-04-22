@@ -13,14 +13,9 @@ export function Town({ collidablesRef }: { collidablesRef?: React.RefObject<THRE
   const hitboxesModel = hitboxesImport.scene;
 
   const prepareRenderMode = useCallback(() => {
-    if (RENDER_MODE === 'textured') {
-      return;
-    }
     townModel.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        if (child.name === 'ground') {
-          child.receiveShadow = true;
-        }
+        child.receiveShadow = true;
         if (RENDER_MODE === 'wireframe') {
           child.material = new THREE.MeshBasicMaterial({ wireframe: true, color: 0x0098db });
         } else if (RENDER_MODE === 'solid') {

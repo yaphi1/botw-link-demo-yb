@@ -13,9 +13,7 @@ export function Castle({ collidablesRef }: { collidablesRef?: React.RefObject<TH
     const meshes: THREE.Mesh[] = [];
     castleModel.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        if (child.name === 'ground') {
-          child.receiveShadow = true;
-        }
+        child.receiveShadow = true;
         if (RENDER_MODE === 'wireframe') {
           child.material = new THREE.MeshBasicMaterial({ wireframe: true, color: 0x0098db });
         } else if (RENDER_MODE === 'solid') {

@@ -28,7 +28,7 @@ export function Town({ collidablesRef }: { collidablesRef?: React.RefObject<THRE
         }
       }
     });
-  }, []);
+  }, [townModel]);
 
   useEffect(prepareRenderMode, [prepareRenderMode]);
   
